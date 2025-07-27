@@ -1,0 +1,37 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sports Tracker</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0D1B2A',
+            secondary: '#1B263B',
+            accent: '#415A77',
+            text: '#E0E1DD',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-primary text-text min-h-screen font-sans">
+  <header class="bg-secondary py-4 shadow">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold text-text">Sports Tracker</h1>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

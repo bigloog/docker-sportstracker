@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-4xl font-bold mb-6 text-center">📅 Sports Tracker</h1>
+
+  <div class="mb-10">
+    <h2 class="text-2xl font-semibold mb-4 border-b border-accent pb-2">Fixtures by Sport</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {% for sport in sports %}
+      <a href="/fixtures/sport/{{ sport }}" class="bg-secondary p-4 rounded-lg hover:bg-accent transition">
+        <div class="text-lg font-medium capitalize">{{ sport }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div>
+    <h2 class="text-2xl font-semibold mb-4 border-b border-accent pb-2">Fixtures by Team</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {% for team in teams %}
+      <a href="/fixtures/team/{{ team }}" class="bg-secondary p-4 rounded-lg hover:bg-accent transition">
+        <div class="text-lg font-medium capitalize">{{ team }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
