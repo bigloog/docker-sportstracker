@@ -12,11 +12,16 @@ with open("config.yaml", "r") as f:
 
 API_KEY = config.get("api_key", "123")
 sports = config.get("sports", {})
-teams = config.get("teams", {})
+teams_config = config.get("teams", {})
 
-# Preload team badges
+# Map teams: keys -> ids and names
+teams = {k: v['id'] for k, v in teams_config.items()}
+team_names = {k: v['name'] for k, v in teams_config.items()}
+
+# Preload team badges using team IDs from config
 team_badges = {}
-for name, team_id in teams.items():
+for name, team in teams_config.items():
+    team_id = team['id']
     badge_url = None
     try:
         resp = requests.get(f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/lookupteam.php?id={team_id}")
@@ -33,7 +38,7 @@ for name, team_id in teams.items():
 def home():
     team_events = []
 
-    for team_name, team_id in teams.items():
+    for team_key, team_id in teams.items():
         url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsnext.php?id={team_id}"
         try:
             response = requests.get(url)
@@ -57,10 +62,10 @@ def home():
                     if event_time_gmt.date() != today_gmt:
                         continue
 
-                    thumb = event.get("strThumb") or team_badges.get(team_name.lower())
+                    thumb = event.get("strThumb") or team_badges.get(team_key.lower())
 
                     team_events.append({
-                        "team": team_name.capitalize(),
+                        "team": team_names.get(team_key.lower(), team_key.capitalize()),
                         "home": event.get("strHomeTeam"),
                         "away": event.get("strAwayTeam"),
                         "date": event.get("dateEvent"),
@@ -70,11 +75,11 @@ def home():
                         "timestamp": event_time_gmt
                     })
                 except Exception as e:
-                    print(f"Error parsing timestamp for {team_name}: {e}")
+                    print(f"Error parsing timestamp for {team_key}: {e}")
                     continue
 
         except Exception as e:
-            print(f"Error fetching data for {team_name}: {e}")
+            print(f"Error fetching data for {team_key}: {e}")
             continue
 
     team_events.sort(key=lambda x: x["timestamp"])
@@ -82,6 +87,7 @@ def home():
     return render_template("home.html",
                            sports=sports,
                            teams=teams,
+                           team_names=team_names,
                            events=team_events)
 
 
@@ -96,8 +102,8 @@ def sport_fixtures(sport):
     league_id = sport_info.get("id")
     sport_name = sport_info.get("name", sport_key.capitalize())
 
-#    current_season = "2025" if sport_key == "formula1" else "2025-2026" # Commented out as config.yaml now contains this data
-    current_season = sport_info.get("season", "2025") # Replacement to the above
+#    current_season = "2025" if sport_key == "formula1" else "2025-2026" Removed to use next line to take season from config
+    current_season = sport_info.get("season", "2025")
 
     url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsseason.php?id={league_id}&s={current_season}"
 
@@ -238,7 +244,7 @@ def team_fixtures(team):
 
     fixtures.sort(key=lambda x: (x['date'], x['time'] or ''))
 
-    return render_template("fixtures.html", sport=team.capitalize(), fixtures=fixtures)
+    return render_template("fixtures.html", sport=team_names.get(team, team.capitalize()), fixtures=fixtures)
 
 
 if __name__ == '__main__':

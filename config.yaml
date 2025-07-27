@@ -51,12 +51,21 @@ sports:
     season: "2025"
 
 teams:
-# English Premier League
-  arsenal: "133604"       # Arsenal - Premier League
-# NFL Teams
-  patriots: "134920"      # New England Patriots
-# NBA Teams
-  celtics: "134860"       # Boston Celtics
-# MLB Teams
-  redsox: "135252"       # Boston Red Sox
+
+  arsenal:
+    id: "133604"
+    name: "Arsenal"
+
+  patriots:
+    id: "134920"
+    name: "New England Patriots"
+
+  celtics:
+    id: "134860"
+    name: "Boston Celtics"
+    
+  redsox:
+    id: "135252"
+    name: "Boston Red Sox"
+
   

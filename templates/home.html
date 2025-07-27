@@ -6,13 +6,14 @@
   <div class="mb-10">
     <h2 class="text-2xl font-semibold mb-4 border-b border-accent pb-2">Fixtures by Sport</h2>
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-      {% for sport in sports %}
-      <a href="/fixtures/sport/{{ sport }}" class="bg-secondary p-4 rounded-lg hover:bg-accent transition">
-        <div class="text-lg font-medium capitalize">{{ sport }}</div>
+      {% for sport_key, sport_info in sports.items() %}
+      <a href="/fixtures/sport/{{ sport_key }}" class="bg-secondary p-4 rounded-lg hover:bg-accent transition">
+        <div class="text-lg font-medium">{{ sport_info.name }}</div>
       </a>
       {% endfor %}
     </div>
   </div>
+
 
   <div>
     <h2 class="text-2xl font-semibold mb-4 border-b border-accent pb-2">Fixtures by Team</h2>
