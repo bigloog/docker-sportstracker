@@ -110,50 +110,100 @@ def sport_fixtures(sport):
     if not events:
         return f"<h2>No fixtures available for {sport.capitalize()}</h2>", 404
 
-    fixtures = []
-    now_utc = datetime.utcnow().replace(tzinfo=pytz.utc)
+    if sport == 'formula1':
+        # Group events by race weekend (e.g., event name or date)
+        race_weeks = {}
+        for event in events:
+            race_name = event.get('strEvent') or "Unknown Event"
+            race_date = event.get('dateEvent')
+            race_time = event.get('strTime')
 
-    for event in events:
-        event_date = event.get("dateEvent")
-        event_time = event.get("strTime")
+            try:
+                if race_time:
+                    time_format = "%H:%M:%S" if len(race_time) == 8 else "%H:%M"
+                    dt = datetime.strptime(f"{race_date} {race_time}", f"%Y-%m-%d {time_format}")
+                else:
+                    dt = datetime.strptime(race_date, "%Y-%m-%d")
+                dt = dt.replace(tzinfo=pytz.utc)
+            except Exception as e:
+                print(f"Skipping invalid event time: {e}")
+                continue
 
-        if not event_date:
-            continue
-
-        try:
-            if event_time:
-                time_format = "%H:%M:%S" if len(event_time) == 8 else "%H:%M"
-                dt = datetime.strptime(f"{event_date} {event_time}", f"%Y-%m-%d {time_format}")
+            # Session type is often in strEvent, e.g. "Australian Grand Prix - Practice 1"
+            # Extract session name after the dash
+            session_name = "Session"
+            if " - " in race_name:
+                race_base, session_name = race_name.split(" - ", 1)
             else:
-                dt = datetime.strptime(event_date, "%Y-%m-%d")
-            dt = dt.replace(tzinfo=pytz.utc)
-        except Exception as e:
-            print(f"Skipping invalid event time: {e}")
-            continue
+                race_base = race_name
 
-        home = event.get('strHomeTeam') or ''
-        away = event.get('strAwayTeam') or ''
+            if race_base not in race_weeks:
+                race_weeks[race_base] = []
 
-        # Safely get badges: event badges or fallback to preloaded team badges by name
-        home_badge = event.get("strHomeTeamBadge") or team_badges.get(home.lower()) if home else None
-        away_badge = event.get("strAwayTeamBadge") or team_badges.get(away.lower()) if away else None
+            race_weeks[race_base].append({
+                'session': session_name,
+                'date': race_date,
+                'time': race_time,
+                'datetime': dt,
+                'venue': event.get('strVenue'),
+                'thumb': event.get('strThumb'),
+            })
 
-        thumb = event.get("strThumb") or home_badge or away_badge
+        # Sort sessions per race by datetime
+        for race in race_weeks:
+            race_weeks[race].sort(key=lambda x: x['datetime'])
 
-        fixtures.append({
-            'home': home,
-            'away': away,
-            'date': event_date,
-            'time': event_time,
-            'venue': event.get('strVenue'),
-            'thumb': thumb,
-            'home_badge': home_badge,
-            'away_badge': away_badge,
-        })
+        # Sort race weekends by first session date
+        sorted_races = sorted(race_weeks.items(), key=lambda x: x[1][0]['datetime'])
 
-    fixtures.sort(key=lambda x: (x['date'], x['time'] or ''))
+        return render_template("formula1_fixtures.html", races=sorted_races, sport=sport.capitalize())
 
-    return render_template("fixtures.html", sport=sport.capitalize(), fixtures=fixtures)
+    else:
+        # Non-F1 existing code for other sports
+        fixtures = []
+        now_utc = datetime.utcnow().replace(tzinfo=pytz.utc)
+
+        for event in events:
+            event_date = event.get("dateEvent")
+            event_time = event.get("strTime")
+
+            if not event_date:
+                continue
+
+            try:
+                if event_time:
+                    time_format = "%H:%M:%S" if len(event_time) == 8 else "%H:%M"
+                    dt = datetime.strptime(f"{event_date} {event_time}", f"%Y-%m-%d {time_format}")
+                else:
+                    dt = datetime.strptime(event_date, "%Y-%m-%d")
+                dt = dt.replace(tzinfo=pytz.utc)
+            except Exception as e:
+                print(f"Skipping invalid event time: {e}")
+                continue
+
+            home = event.get('strHomeTeam') or ''
+            away = event.get('strAwayTeam') or ''
+
+            home_badge = event.get("strHomeTeamBadge") or team_badges.get(home.lower()) if home else None
+            away_badge = event.get("strAwayTeamBadge") or team_badges.get(away.lower()) if away else None
+
+            thumb = event.get("strThumb") or home_badge or away_badge
+
+            fixtures.append({
+                'home': home,
+                'away': away,
+                'date': event_date,
+                'time': event_time,
+                'venue': event.get('strVenue'),
+                'thumb': thumb,
+                'home_badge': home_badge,
+                'away_badge': away_badge,
+            })
+
+        fixtures.sort(key=lambda x: (x['date'], x['time'] or ''))
+
+        return render_template("fixtures.html", sport=sport.capitalize(), fixtures=fixtures)
+
 
 
 @app.route('/fixtures/team/<team>')

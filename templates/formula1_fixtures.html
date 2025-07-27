@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto px-4 py-8 bg-secondary text-white rounded-lg shadow-md">
+  <h1 class="text-4xl font-bold mb-6 text-center">🏎️ {{ sport }} Upcoming Sessions</h1>
+
+  {% if races %}
+    {% for race_name, sessions in races %}
+      <section class="mb-8 p-6 bg-secondary rounded-lg shadow-md">
+        <h2 class="text-3xl font-semibold mb-2 border-b border-accent pb-2">{{ race_name }}</h2>
+        <p class="mb-4 text-gray-300"><strong>Venue:</strong> {{ sessions[0].venue or 'TBD' }}</p>
+        {% if sessions[0].thumb %}
+          <img class="mx-auto mb-4 rounded-lg max-w-xs" src="{{ sessions[0].thumb }}" alt="{{ race_name }} Thumbnail" />
+        {% endif %}
+        <ul class="space-y-2">
+          {% for s in sessions %}
+            <li class="text-lg">
+              <span class="font-semibold">{{ s.session }}</span> – {{ s.date }}{% if s.time %} @ {{ s.time }} UTC{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endfor %}
+  {% else %}
+    <p class="text-center text-gray-400">No upcoming sessions found.</p>
+  {% endif %}
+</div>
+{% endblock %}
