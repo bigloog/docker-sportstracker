@@ -116,7 +116,9 @@ def sport_fixtures(sport):
             'date': event.get('dateEvent'),
             'time': event.get('strTime'),
             'venue': event.get('strVenue'),
-            'thumb': thumb,
+            'thumb': event.get('strThumb'),
+            'home_badge': event.get('strHomeTeamBadge'),
+            'away_badge': event.get('strAwayTeamBadge'),
         })
 
     return render_template("fixtures.html", sport=sport.capitalize(), fixtures=fixtures)
@@ -147,7 +149,9 @@ def team_fixtures(team):
             'date': event.get('dateEvent'),
             'time': event.get('strTime'),
             'venue': event.get('strVenue'),
-            'thumb': thumb,
+            'thumb': event.get('strThumb'),
+            'home_badge': event.get('strHomeTeamBadge'),
+            'away_badge': event.get('strAwayTeamBadge'),
         })
 
     return render_template("fixtures.html", sport=team.capitalize(), fixtures=fixtures)
