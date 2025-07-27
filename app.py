@@ -33,6 +33,31 @@ for name, team in teams_config.items():
         print(f"Error fetching badge for {name}: {e}")
     team_badges[name.lower()] = badge_url
 
+# Preload sport logos using league IDs from config
+sport_logos = {}
+for sport_key, sport_info in sports.items():
+    league_id = sport_info.get("id")
+    if not league_id:
+        sport_logos[sport_key] = None
+        continue
+
+    try:
+        url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/lookupleague.php?id={league_id}"
+        resp = requests.get(url)
+        resp.raise_for_status()
+        data = resp.json()
+
+        leagues = data.get("leagues")
+        if leagues and len(leagues) > 0:
+            # strBadge or strLogo usually contains league logo
+            league = leagues[0]
+            badge_url = league.get("strBadge") or league.get("strLogo")
+            sport_logos[sport_key] = badge_url
+        else:
+            sport_logos[sport_key] = None
+    except Exception as e:
+        print(f"Error fetching logo for {sport_key}: {e}")
+        sport_logos[sport_key] = None
 
 @app.route('/')
 def home():
@@ -88,7 +113,8 @@ def home():
                            sports=sports,
                            teams=teams,
                            team_names=team_names,
-                           events=team_events)
+                           events=team_events,
+                           sport_logos=sport_logos)
 
 
 @app.route('/fixtures/sport/<sport>')
