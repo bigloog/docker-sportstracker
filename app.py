@@ -102,7 +102,7 @@ def sport_fixtures(sport):
     league_id = sport_info.get("id")
     sport_name = sport_info.get("name", sport_key.capitalize())
 
-#    current_season = "2025" if sport_key == "formula1" else "2025-2026" Removed to use next line to take season from config
+#    current_season = "2025" if sport_key == "formula1" else "2025-2026" Removed to use next line to take season from config.
     current_season = sport_info.get("season", "2025")
 
     url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsseason.php?id={league_id}&s={current_season}"
