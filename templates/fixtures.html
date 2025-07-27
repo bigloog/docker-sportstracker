@@ -1,46 +1,56 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-2xl font-semibold mb-8 text-center">Fixtures for {{ sport }}</h2>
+<h2 class="text-3xl font-bold mb-10 text-center text-blue-800">Fixtures for {{ sport }}</h2>
 
 {% if fixtures %}
-  <div class="space-y-10 max-w-3xl mx-auto"> <!-- Center container -->
+  <div class="space-y-10 max-w-4xl mx-auto">
     {% for fixture in fixtures %}
-      <div class="bg-secondary rounded-lg shadow-md p-6 text-center">
-        <div class="flex items-center justify-center space-x-6 mb-4">
+      <div class="bg-secondary rounded-lg shadow-md p-6 flex items-center space-x-6">
+        
+        <!-- Thumbnail -->
+        {% if fixture.thumb %}
+          <div class="w-48 h-32 overflow-hidden flex items-center justify-center bg-gray-100 rounded">
+            <img src="{{ fixture.thumb }}" alt="Match Thumbnail" class="h-full w-auto object-contain" />
+          </div>
+        {% else %}
+          <div class="w-48 h-32 bg-gray-300 flex items-center justify-center text-gray-600 text-sm rounded">
+            No Image Available
+          </div>
+        {% endif %}
+
+        <!-- Center: Fixture Info -->
+        <div class="flex-1 text-left space-y-2">
+          <div class="text-sm text-text/80">
+            <div><strong>{{ fixture.home }}</strong> vs <strong>{{ fixture.away }}</strong></div>
+            <div><strong>Date:</strong> {{ fixture.date or 'TBA' }}</div>
+            <div><strong>Time:</strong> {{ fixture.time or 'TBA' }}</div>
+            <div><strong>Venue:</strong> {{ fixture.venue or 'TBA' }}</div>
+          </div>
+        </div>
+
+        <!-- Right: Logos and "vs" horizontally -->
+        <div class="flex items-center space-x-3">
           {% if fixture.home_badge %}
-            <img src="{{ fixture.home_badge }}" alt="{{ fixture.home }} badge" class="w-20 h-20 object-contain" />
+            <img src="{{ fixture.home_badge }}" alt="{{ fixture.home }} badge" class="w-12 h-12 object-contain" />
           {% else %}
-            <div class="w-20 h-20 bg-accent rounded-md flex items-center justify-center text-text text-xs font-semibold">
-              No Logo
-            </div>
+            <div class="w-12 h-12 bg-accent rounded flex items-center justify-center text-xs text-white">N/A</div>
           {% endif %}
 
-          <div class="text-xl font-bold text-text select-none">vs</div>
+          <div class="font-bold">vs</div>
 
           {% if fixture.away_badge %}
-            <img src="{{ fixture.away_badge }}" alt="{{ fixture.away }} badge" class="w-20 h-20 object-contain" />
+            <img src="{{ fixture.away_badge }}" alt="{{ fixture.away }} badge" class="w-12 h-12 object-contain" />
           {% else %}
-            <div class="w-20 h-20 bg-accent rounded-md flex items-center justify-center text-text text-xs font-semibold">
-              No Logo
-            </div>
+            <div class="w-12 h-12 bg-accent rounded flex items-center justify-center text-xs text-white">N/A</div>
           {% endif %}
         </div>
 
-        <div class="flex justify-center space-x-12 text-sm text-text/80">
-          <div class="font-semibold">{{ fixture.home }}</div>
-          <div class="font-semibold">{{ fixture.away }}</div>
-        </div>
-
-        <div class="mt-4 text-text/70 text-sm space-y-1">
-          <div><strong>Date:</strong> {{ fixture.date or 'TBA' }}</div>
-          <div><strong>Time:</strong> {{ fixture.time or 'TBA' }}</div>
-          <div><strong>Venue:</strong> {{ fixture.venue or 'TBA' }}</div>
-        </div>
       </div>
     {% endfor %}
   </div>
 {% else %}
   <p class="text-text/70 italic max-w-3xl mx-auto text-center">No upcoming fixtures found.</p>
 {% endif %}
+
 {% endblock %}
