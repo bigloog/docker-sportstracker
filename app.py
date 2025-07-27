@@ -80,22 +80,24 @@ def home():
     team_events.sort(key=lambda x: x["timestamp"])
 
     return render_template("home.html",
-                           sports=sports.keys(),
-                           teams=teams.keys(),
+                           sports=sports,
+                           teams=teams,
                            events=team_events)
 
 
 @app.route('/fixtures/sport/<sport>')
 def sport_fixtures(sport):
-    if sport not in sports:
+    sport_key = sport.lower()
+    sport_info = sports.get(sport_key)
+
+    if not sport_info:
         return f"<h2>No data available for sport '{sport}'</h2>", 404
 
-    league_id = sports[sport]
+    league_id = sport_info.get("id")
+    sport_name = sport_info.get("name", sport_key.capitalize())
 
-    if sport == 'formula1':
-        current_season = "2025"
-    else:
-        current_season = "2025-2026"
+#    current_season = "2025" if sport_key == "formula1" else "2025-2026" # Commented out as config.yaml now contains this data
+    current_season = sport_info.get("season", "2025") # Replacement to the above
 
     url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsseason.php?id={league_id}&s={current_season}"
 
@@ -108,10 +110,9 @@ def sport_fixtures(sport):
 
     events = data.get('events')
     if not events:
-        return f"<h2>No fixtures available for {sport.capitalize()}</h2>", 404
+        return f"<h2>No fixtures available for {sport_name}</h2>", 404
 
-    if sport == 'formula1':
-        # Group events by race weekend (e.g., event name or date)
+    if sport_key == 'formula1':
         race_weeks = {}
         for event in events:
             race_name = event.get('strEvent') or "Unknown Event"
@@ -129,8 +130,6 @@ def sport_fixtures(sport):
                 print(f"Skipping invalid event time: {e}")
                 continue
 
-            # Session type is often in strEvent, e.g. "Australian Grand Prix - Practice 1"
-            # Extract session name after the dash
             session_name = "Session"
             if " - " in race_name:
                 race_base, session_name = race_name.split(" - ", 1)
@@ -149,20 +148,15 @@ def sport_fixtures(sport):
                 'thumb': event.get('strThumb'),
             })
 
-        # Sort sessions per race by datetime
         for race in race_weeks:
             race_weeks[race].sort(key=lambda x: x['datetime'])
 
-        # Sort race weekends by first session date
         sorted_races = sorted(race_weeks.items(), key=lambda x: x[1][0]['datetime'])
 
-        return render_template("formula1_fixtures.html", races=sorted_races, sport=sport.capitalize())
+        return render_template("formula1_fixtures.html", races=sorted_races, sport=sport_name)
 
     else:
-        # Non-F1 existing code for other sports
         fixtures = []
-        now_utc = datetime.utcnow().replace(tzinfo=pytz.utc)
-
         for event in events:
             event_date = event.get("dateEvent")
             event_time = event.get("strTime")
@@ -183,10 +177,8 @@ def sport_fixtures(sport):
 
             home = event.get('strHomeTeam') or ''
             away = event.get('strAwayTeam') or ''
-
             home_badge = event.get("strHomeTeamBadge") or team_badges.get(home.lower()) if home else None
             away_badge = event.get("strAwayTeamBadge") or team_badges.get(away.lower()) if away else None
-
             thumb = event.get("strThumb") or home_badge or away_badge
 
             fixtures.append({
@@ -202,8 +194,7 @@ def sport_fixtures(sport):
 
         fixtures.sort(key=lambda x: (x['date'], x['time'] or ''))
 
-        return render_template("fixtures.html", sport=sport.capitalize(), fixtures=fixtures)
-
+        return render_template("fixtures.html", sport=sport_name, fixtures=fixtures)
 
 
 @app.route('/fixtures/team/<team>')
@@ -214,7 +205,6 @@ def team_fixtures(team):
 
     team_id = teams[team]
 
-    # Example: skip Formula 1 because no team schedules there
     if team == "formula1":
         return f"<h2>Team schedules not available for Formula 1. Please use the sport view.</h2>", 400
 
@@ -232,8 +222,8 @@ def team_fixtures(team):
         home = event.get('strHomeTeam') or ''
         away = event.get('strAwayTeam') or ''
         thumb = event.get("strThumb") or team_badges.get(home.lower()) or team_badges.get(away.lower())
-        home_badge = event.get("strHomeTeamBadge") or (team_badges.get(home.lower()) if home else None)
-        away_badge = event.get("strAwayTeamBadge") or (team_badges.get(away.lower()) if away else None)
+        home_badge = event.get("strHomeTeamBadge") or team_badges.get(home.lower()) if home else None
+        away_badge = event.get("strAwayTeamBadge") or team_badges.get(away.lower()) if away else None
 
         fixtures.append({
             'home': home,
