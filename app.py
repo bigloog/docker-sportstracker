@@ -49,14 +49,13 @@ def home():
                 if not event_time_str:
                     continue
 
-                # Parse event time and convert to Europe/London timezone
                 try:
                     event_time_utc = datetime.strptime(event_time_str, "%Y-%m-%dT%H:%M:%S")
                     event_time_gmt = event_time_utc.replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Europe/London"))
                     today_gmt = datetime.now(pytz.timezone("Europe/London")).date()
 
                     if event_time_gmt.date() != today_gmt:
-                        continue  # Only today's fixtures on homepage
+                        continue
 
                     thumb = event.get("strThumb") or team_badges.get(team_name.lower())
 
@@ -78,7 +77,6 @@ def home():
             print(f"Error fetching data for {team_name}: {e}")
             continue
 
-    # Sort today's events by time
     team_events.sort(key=lambda x: x["timestamp"])
 
     return render_template("home.html",
@@ -93,7 +91,13 @@ def sport_fixtures(sport):
         return f"<h2>No data available for sport '{sport}'</h2>", 404
 
     league_id = sports[sport]
-    url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsnextleague.php?id={league_id}"
+
+    if sport == 'formula1':
+        current_season = "2025"
+    else:
+        current_season = "2025-2026"
+
+    url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsseason.php?id={league_id}&s={current_season}"
 
     try:
         response = requests.get(url)
@@ -102,24 +106,52 @@ def sport_fixtures(sport):
     except Exception as e:
         return f"<h2>Error fetching sport data: {e}</h2>", 500
 
+    events = data.get('events')
+    if not events:
+        return f"<h2>No fixtures available for {sport.capitalize()}</h2>", 404
+
     fixtures = []
-    for event in data.get('events') or []:
-        thumb = event.get("strThumb")
-        if not thumb:
-            home = event.get("strHomeTeam", "").lower()
-            away = event.get("strAwayTeam", "").lower()
-            thumb = team_badges.get(home) or team_badges.get(away)
+    now_utc = datetime.utcnow().replace(tzinfo=pytz.utc)
+
+    for event in events:
+        event_date = event.get("dateEvent")
+        event_time = event.get("strTime")
+
+        if not event_date:
+            continue
+
+        try:
+            if event_time:
+                time_format = "%H:%M:%S" if len(event_time) == 8 else "%H:%M"
+                dt = datetime.strptime(f"{event_date} {event_time}", f"%Y-%m-%d {time_format}")
+            else:
+                dt = datetime.strptime(event_date, "%Y-%m-%d")
+            dt = dt.replace(tzinfo=pytz.utc)
+        except Exception as e:
+            print(f"Skipping invalid event time: {e}")
+            continue
+
+        home = event.get('strHomeTeam') or ''
+        away = event.get('strAwayTeam') or ''
+
+        # Safely get badges: event badges or fallback to preloaded team badges by name
+        home_badge = event.get("strHomeTeamBadge") or team_badges.get(home.lower()) if home else None
+        away_badge = event.get("strAwayTeamBadge") or team_badges.get(away.lower()) if away else None
+
+        thumb = event.get("strThumb") or home_badge or away_badge
 
         fixtures.append({
-            'home': event.get('strHomeTeam'),
-            'away': event.get('strAwayTeam'),
-            'date': event.get('dateEvent'),
-            'time': event.get('strTime'),
+            'home': home,
+            'away': away,
+            'date': event_date,
+            'time': event_time,
             'venue': event.get('strVenue'),
-            'thumb': event.get('strThumb'),
-            'home_badge': event.get('strHomeTeamBadge'),
-            'away_badge': event.get('strAwayTeamBadge'),
+            'thumb': thumb,
+            'home_badge': home_badge,
+            'away_badge': away_badge,
         })
+
+    fixtures.sort(key=lambda x: (x['date'], x['time'] or ''))
 
     return render_template("fixtures.html", sport=sport.capitalize(), fixtures=fixtures)
 
@@ -131,6 +163,11 @@ def team_fixtures(team):
         return f"<h2>No data available for team '{team}'</h2>", 404
 
     team_id = teams[team]
+
+    # Example: skip Formula 1 because no team schedules there
+    if team == "formula1":
+        return f"<h2>Team schedules not available for Formula 1. Please use the sport view.</h2>", 400
+
     url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsnext.php?id={team_id}"
 
     try:
@@ -142,17 +179,24 @@ def team_fixtures(team):
 
     fixtures = []
     for event in data.get('events') or []:
-        thumb = event.get("strThumb") or team_badges.get(team)
+        home = event.get('strHomeTeam') or ''
+        away = event.get('strAwayTeam') or ''
+        thumb = event.get("strThumb") or team_badges.get(home.lower()) or team_badges.get(away.lower())
+        home_badge = event.get("strHomeTeamBadge") or (team_badges.get(home.lower()) if home else None)
+        away_badge = event.get("strAwayTeamBadge") or (team_badges.get(away.lower()) if away else None)
+
         fixtures.append({
-            'home': event.get('strHomeTeam'),
-            'away': event.get('strAwayTeam'),
+            'home': home,
+            'away': away,
             'date': event.get('dateEvent'),
             'time': event.get('strTime'),
             'venue': event.get('strVenue'),
-            'thumb': event.get('strThumb'),
-            'home_badge': event.get('strHomeTeamBadge'),
-            'away_badge': event.get('strAwayTeamBadge'),
+            'thumb': thumb,
+            'home_badge': home_badge,
+            'away_badge': away_badge,
         })
+
+    fixtures.sort(key=lambda x: (x['date'], x['time'] or ''))
 
     return render_template("fixtures.html", sport=team.capitalize(), fixtures=fixtures)
 
