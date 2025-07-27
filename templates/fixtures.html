@@ -1,38 +1,38 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-2xl font-semibold mb-8 text-center">Fixtures for {{ sport }}</h2>
+<h2 class="text-3xl font-bold mb-10 text-center text-blue-800">Fixtures for {{ sport }}</h2>
 
 {% if fixtures %}
-  <div class="space-y-10 max-w-3xl mx-auto"> <!-- Center container -->
+  <div class="space-y-10 max-w-3xl mx-auto px-4"> <!-- Container -->
     {% for fixture in fixtures %}
-      <div class="bg-secondary rounded-lg shadow-md p-6 text-center">
+      <div class="bg-white rounded-lg shadow-md p-6 text-center">
         <div class="flex items-center justify-center space-x-6 mb-4">
           {% if fixture.home_badge %}
             <img src="{{ fixture.home_badge }}" alt="{{ fixture.home }} badge" class="w-20 h-20 object-contain" />
           {% else %}
-            <div class="w-20 h-20 bg-accent rounded-md flex items-center justify-center text-text text-xs font-semibold">
+            <div class="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 text-xs font-semibold">
               No Logo
             </div>
           {% endif %}
 
-          <div class="text-xl font-bold text-text select-none">vs</div>
+          <div class="text-xl font-bold text-gray-700 select-none">vs</div>
 
           {% if fixture.away_badge %}
             <img src="{{ fixture.away_badge }}" alt="{{ fixture.away }} badge" class="w-20 h-20 object-contain" />
           {% else %}
-            <div class="w-20 h-20 bg-accent rounded-md flex items-center justify-center text-text text-xs font-semibold">
+            <div class="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 text-xs font-semibold">
               No Logo
             </div>
           {% endif %}
         </div>
 
-        <div class="flex justify-center space-x-12 text-sm text-text/80">
-          <div class="font-semibold">{{ fixture.home }}</div>
-          <div class="font-semibold">{{ fixture.away }}</div>
+        <div class="flex justify-center space-x-12 text-sm text-gray-700 font-semibold mb-4">
+          <div>{{ fixture.home }}</div>
+          <div>{{ fixture.away }}</div>
         </div>
 
-        <div class="mt-4 text-text/70 text-sm space-y-1">
+        <div class="mt-2 text-gray-600 text-sm space-y-1">
           <div><strong>Date:</strong> {{ fixture.date or 'TBA' }}</div>
           <div><strong>Time:</strong> {{ fixture.time or 'TBA' }}</div>
           <div><strong>Venue:</strong> {{ fixture.venue or 'TBA' }}</div>
@@ -41,6 +41,6 @@
     {% endfor %}
   </div>
 {% else %}
-  <p class="text-text/70 italic max-w-3xl mx-auto text-center">No upcoming fixtures found.</p>
+  <p class="text-gray-500 italic max-w-3xl mx-auto text-center">No upcoming fixtures found.</p>
 {% endif %}
 {% endblock %}
