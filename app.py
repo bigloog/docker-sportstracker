@@ -1,8 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import requests
 import yaml
 from datetime import datetime
 import pytz
+from collections import defaultdict
 
 app = Flask(__name__)
 
@@ -15,8 +16,8 @@ sports = config.get("sports", {})
 teams_config = config.get("teams", {})
 
 # Map teams: keys -> ids and names
-teams = {k: v['id'] for k, v in teams_config.items()}
-team_names = {k: v['name'] for k, v in teams_config.items()}
+teams = {k.lower(): v['id'] for k, v in teams_config.items()}
+team_names = {k.lower(): v['name'] for k, v in teams_config.items()}
 
 # Preload team badges using team IDs from config
 team_badges = {}
@@ -49,7 +50,6 @@ for sport_key, sport_info in sports.items():
 
         leagues = data.get("leagues")
         if leagues and len(leagues) > 0:
-            # strBadge or strLogo usually contains league logo
             league = leagues[0]
             badge_url = league.get("strBadge") or league.get("strLogo")
             sport_logos[sport_key] = badge_url
@@ -116,6 +116,41 @@ def home():
                            events=team_events,
                            sport_logos=sport_logos)
 
+@app.route('/api/events')
+def api_events():
+    all_events = []
+
+    for team_key, team_id in teams.items():
+        url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsnext.php?id={team_id}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            events = data.get("events")
+            if not events:
+                continue
+
+            for event in events:
+                event_date = event.get("dateEvent")
+                event_time = event.get("strTime") or "00:00:00"
+                if not event_date:
+                    continue
+
+                dt_str = f"{event_date}T{event_time}"
+
+                title = f"{event.get('strHomeTeam')} vs {event.get('strAwayTeam')}"
+
+                all_events.append({
+                    "title": title,
+                    "start": dt_str,
+                    "url": f"/fixtures/team/{team_key}",
+                })
+
+        except Exception as e:
+            print(f"Error fetching events for {team_key}: {e}")
+            continue
+
+    return jsonify(all_events)
 
 @app.route('/fixtures/sport/<sport>')
 def sport_fixtures(sport):
@@ -127,8 +162,6 @@ def sport_fixtures(sport):
 
     league_id = sport_info.get("id")
     sport_name = sport_info.get("name", sport_key.capitalize())
-
-#    current_season = "2025" if sport_key == "formula1" else "2025-2026" Removed to use next line to take season from config.
     current_season = sport_info.get("season", "2025")
 
     url = f"https://www.thesportsdb.com/api/v1/json/{API_KEY}/eventsseason.php?id={league_id}&s={current_season}"
@@ -222,6 +255,7 @@ def sport_fixtures(sport):
                 'thumb': thumb,
                 'home_badge': home_badge,
                 'away_badge': away_badge,
+                'tv_station': event.get('strTVStation'),
             })
 
         fixtures.sort(key=lambda x: (x['date'], x['time'] or ''))
@@ -266,6 +300,7 @@ def team_fixtures(team):
             'thumb': thumb,
             'home_badge': home_badge,
             'away_badge': away_badge,
+            'tv_station': event.get('strTVStation'),
         })
 
     fixtures.sort(key=lambda x: (x['date'], x['time'] or ''))
