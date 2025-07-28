@@ -1,18 +1,71 @@
 # config.yaml
 
+
 api_key: "123"
 
 sports:
-  football: "4328"              # British Football
-  basketball: "4387"            # NBA
-  americanfootball: "4391"      # NFL
-  hockey: "4380"                # NHL
-  formula1: "4370"              # F1
-  baseball: "4424"              # MLB
+  
+  americanfootball:             
+    id: "4391"                  
+    name: "NFL"
+    season: "2025"   
+
+  collegefootball:              
+    id: "4479"
+    name: "NCAA College Football"
+    season: "2025"    
+
+  baseball: 
+    id: "4424" 
+    name: "MLB"  
+    season: "2025"           
+  
+  basketball: 
+    id: "4387"
+    name: "NBA"
+    season: "2025-2026"
+
+  # englandrugby: 
+  #   id: "137123" 
+  #   name: "England International Rugby"
+  #   season: "2025"
+
+  football: 
+    id: "4328"
+    name: "Premier League Football"
+    season: "2025-2026"
+
+  formula1: 
+    id: "4370" 
+    name: "Formula 1"
+    season: "2025"               
+
+  vitalityblast: 
+    id: "4463" 
+    name: "County Cricket T20 VB"
+    season: "2025"
+
+  thehundred:
+    id: "5177"         
+    name: "The Hundred"
+    season: "2025"
 
 teams:
-  arsenal: "133604"       # Arsenal - Premier League
-  patriots: "134920"      # New England Patriots
-  celtics: "134860"       # Boston Celtics
-  redsox: "135252"       # Boston Red Sox
+
+  arsenal:
+    id: "133604"
+    name: "Arsenal"
+
+  patriots:
+    id: "134920"
+    name: "New England Patriots"
+
+  celtics:
+    id: "134860"
+    name: "Boston Celtics"
+
+  redsox:
+    id: "135252"
+    name: "Boston Red Sox"
+
   

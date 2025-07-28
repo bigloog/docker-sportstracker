@@ -21,11 +21,14 @@
 
         <!-- Center: Fixture Info -->
         <div class="flex-1 text-left space-y-2">
-          <div class="text-sm text-text/80">
+          <div class="text-sm text-text/80 space-y-1">
             <div><strong>{{ fixture.home }}</strong> vs <strong>{{ fixture.away }}</strong></div>
             <div><strong>Date:</strong> {{ fixture.date or 'TBA' }}</div>
             <div><strong>Time:</strong> {{ fixture.time or 'TBA' }}</div>
             <div><strong>Venue:</strong> {{ fixture.venue or 'TBA' }}</div>
+            {% if fixture.tv_station %}
+              <div><strong>TV:</strong> {{ fixture.tv_station }}</div>
+            {% endif %}
           </div>
         </div>
 
