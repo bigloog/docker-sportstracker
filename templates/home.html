@@ -8,13 +8,6 @@
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
       {% for sport_key, sport_info in sports.items() %}
       <a href="/fixtures/sport/{{ sport_key }}" class="bg-secondary p-4 rounded-lg hover:bg-accent transition flex items-center space-x-4">
-        
-        {% if sport_logos[sport_key] %}
-          <img src="{{ sport_logos[sport_key] }}" alt="{{ sport_info.name }} logo" class="w-8 h-8 object-contain" />
-        {% else %}
-          <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-xs text-white">?</div>
-        {% endif %}
-        
         <div class="text-lg font-medium">{{ sport_info.name }}</div>
       </a>
       {% endfor %}
